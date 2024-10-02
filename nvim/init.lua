@@ -1,4 +1,3 @@
--- Set leader key
 vim.g.mapleader = " "
 
 -- Basic settings
@@ -9,9 +8,27 @@ vim.opt.shiftwidth = 4         -- Number of spaces to use for autoindent
 vim.opt.expandtab = true       -- Use spaces instead of tabs
 vim.opt.smartindent = true     -- Smart indenting
 vim.opt.wrap = false           -- Don't wrap lines
+vim.opt.mouse = 'a'
+vim.opt.clipboard = 'unnamedplus'
 
-vim.cmd("h ighlight Normal guibg=NONE ctermbg=NONE")
+-- ctrl s for save
+-- Map Ctrl + S to :w (save) in Normal mode
+vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>a', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-s>', '<Esc>:w<CR>gv', { noremap = true, silent = true })
+-- Map Ctrl + z to go one step back
+vim.api.nvim_set_keymap('n', '<C-z>','u',{ noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-z>','<Esc>ui',{ noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-z>','<Esc>u',{ noremap = true, silent = true })
+-- Map Ctrl + q to quit the file
+vim.api.nvim_set_keymap('n', '<C-q>',':wq<CR>',{ noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-q>','<Esc>:wq<CR>',{ noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<C-q>','<Esc>:wq<CR>',{ noremap = true, silent = true })
 
+
+
+vim.cmd("highlight Normal guibg=NONE ctermbg=NONE")
+-- comment test 12312312xaxaxaxaxa
 -- Enable mouse support
 vim.opt.mouse = "a"
 
@@ -33,6 +50,7 @@ if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
   vim.cmd('packadd packer.nvim')
 end
 
+
 -- Plugins configuration
 require('packer').startup(function(use)
   use 'wbthomason/packer.nvim'  -- Packer can manage itself
@@ -47,10 +65,21 @@ require('packer').startup(function(use)
   use 'hrsh7th/cmp-cmdline'  -- Cmdline source for nvim-cmp
   use 'L3MON4D3/LuaSnip'  -- Snippet engine
   use 'saadparwaiz1/cmp_luasnip'  -- Snippet source for nvim-cmp
+  use  'nvim-tree/nvim-tree.lua'
   use ('Tsuzat/NeoSolarized.nvim')
+  use 'windwp/nvim-ts-autotag'
 -- Add more plugins here
 end)
--- Lua
+-- LuaSnip
+require'nvim-treesitter.configs'.setup {
+  ensure_installed = { "javascript", "typescript", "tsx", "json", "html", "css" },
+  highlight = {
+    enable = true,
+  },
+    autotag = {
+    enable = true,  -- Enable nvim-ts-autotag
+  }
+}
 
 -- Configure lualine
 require('lualine').setup {
@@ -61,6 +90,9 @@ require('lualine').setup {
   }
 }
 vim.cmd[[colorscheme NeoSolarized]]
+
+
+
 -- Autocompletion setup
 local cmp = require('cmp')
 local lspconfig = require('lspconfig')
@@ -87,6 +119,11 @@ cmp.setup({
   })
 })
 
+
+-- Toggle nvim-tree with <leader>e
+-- vim.api.nvim_set_keymap('n', '<leader>e', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
+
+
 -- Configure LSP for JavaScript (using TypeScript language server)
 lspconfig.tsserver.setup({
   on_attach = function(client, bufnr)
@@ -101,6 +138,7 @@ lspconfig.tsserver.setup({
     vim.api.nvim_set_keymap('n', '<leader>f', '<Cmd>lua vim.lsp.buf.formatting()<CR>', opts)
   end,
 })
+
 local ok_status, NeoSolarized = pcall(require, "NeoSolarized")
 
 if not ok_status then
@@ -110,10 +148,10 @@ end
 -- Default Setting for NeoSolarized
 
 NeoSolarized.setup {
-  style = "dark", -- "dark" or "light"
+  style = "light", -- "dark" or "light"
   transparent = true, -- true/false; Enable this to disable setting the background color
   terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
-  enable_italics = true, -- Italics for different hightlight groups (eg. Statement, Condition, Comment, Include, >
+  enable_italics = true, -- Italics for different hightlight groups (eg. Statement, Condition, Comment, Include, etc.)
   styles = {
     -- Style to be applied to different syntax groups
     comments = { italic = true },
@@ -125,16 +163,18 @@ NeoSolarized.setup {
     undercurl = true, -- true/false; for global undercurl
   },
   -- Add specific hightlight groups
-  on_highlights = function(highlights, colors)
+  on_highlights = function(highlights, colors) 
     -- highlights.Include.fg = colors.red -- Using `red` foreground for Includes
-  end,
+  end, 
 }
 -- Set colorscheme to NeoSolarized
 vim.cmd [[
-   try
+    try
         colorscheme NeoSolarized
-    catch /^Vim\%((\a\+)\)\=:E18o
+    catch /^Vim\%((\a\+)\)\=:E18/
         colorscheme default
         set background=dark
     endtry
 ]]
+
+
