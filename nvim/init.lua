@@ -1,3 +1,4 @@
+-- Set leader key
 vim.g.mapleader = " "
 
 -- Basic settings
@@ -11,7 +12,9 @@ vim.opt.wrap = false           -- Don't wrap lines
 vim.opt.mouse = 'a'
 vim.opt.clipboard = 'unnamedplus'
 
--- ctrl s for save
+-- Indent using Tab in visual mode
+vim.api.nvim_set_keymap('v', '<Tab>', '>gv', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('v', '<S-Tab>', '<gv', { noremap = true, silent = true })
 -- Map Ctrl + S to :w (save) in Normal mode
 vim.api.nvim_set_keymap('n', '<C-s>', ':w<CR>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('i', '<C-s>', '<Esc>:w<CR>a', { noremap = true, silent = true })
@@ -26,18 +29,14 @@ vim.api.nvim_set_keymap('i', '<C-q>','<Esc>:wq<CR>',{ noremap = true, silent = t
 vim.api.nvim_set_keymap('v', '<C-q>','<Esc>:wq<CR>',{ noremap = true, silent = true })
 
 
-
 vim.cmd("highlight Normal guibg=NONE ctermbg=NONE")
 -- comment test 12312312xaxaxaxaxa
 -- Enable mouse support
 vim.opt.mouse = "a"
-
 -- Enable syntax highlighting
 vim.cmd("syntax on")
-
 -- Enable 24-bit RGB color in the TUI
 vim.opt.termguicolors = true
-
 -- Set up a basic status line
 vim.opt.laststatus = 2
 vim.opt.showmode = false
@@ -49,7 +48,6 @@ if vim.fn.empty(vim.fn.glob(install_path)) > 0 then
   vim.fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
   vim.cmd('packadd packer.nvim')
 end
-
 
 -- Plugins configuration
 require('packer').startup(function(use)
@@ -68,6 +66,9 @@ require('packer').startup(function(use)
   use  'nvim-tree/nvim-tree.lua'
   use ('Tsuzat/NeoSolarized.nvim')
   use 'windwp/nvim-ts-autotag'
+  use 'nvim-tree/nvim-web-devicons'  -- File icons
+  use 'nvim-lua/plenary.nvim'  -- Required dependency for Telescope
+
 -- Add more plugins here
 end)
 -- LuaSnip
@@ -89,8 +90,36 @@ require('lualine').setup {
     component_separators = ''
   }
 }
-vim.cmd[[colorscheme NeoSolarized]]
 
+require'nvim-tree'.setup {
+  view = {
+    side = 'left',  -- Position of the explorer (left or right)
+  },
+  filters = {
+    dotfiles = false,  -- Show or hide dotfiles
+  },
+  git = {
+    enable = true,  -- Show git status icons
+  }
+}
+
+-- Function to toggle focus on the NvimTree
+function ToggleNvimTreeFocus()
+  local nvim_tree = require("nvim-tree")
+  local is_tree_open = require("nvim-tree.view").is_visible()  -- Check if the tree is open
+  
+  if is_tree_open then
+    -- If the tree is open, focus on it
+    vim.cmd("NvimTreeFocus")
+  else
+    -- If the tree is not open, toggle it open
+    nvim_tree.toggle({ focus = true })  -- Ensure it opens focused
+  end
+end
+-- enabling the file tree
+vim.api.nvim_set_keymap('n', '<C-n>', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
+-- Keymapping to move focus to the file tree
+vim.api.nvim_set_keymap('n', '<C-e>', ':lua ToggleNvimTreeFocus()<CR>', { noremap = true, silent = true })
 
 
 -- Autocompletion setup
@@ -120,12 +149,9 @@ cmp.setup({
 })
 
 
--- Toggle nvim-tree with <leader>e
--- vim.api.nvim_set_keymap('n', '<leader>e', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
-
 
 -- Configure LSP for JavaScript (using TypeScript language server)
-lspconfig.tsserver.setup({
+lspconfig.ts_ls.setup({
   on_attach = function(client, bufnr)
     local opts = { noremap=true, silent=true }
     vim.api.nvim_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
@@ -148,7 +174,7 @@ end
 -- Default Setting for NeoSolarized
 
 NeoSolarized.setup {
-  style = "light", -- "dark" or "light"
+  style = "dark", -- "dark" or "light"
   transparent = true, -- true/false; Enable this to disable setting the background color
   terminal_colors = true, -- Configure the colors used when opening a `:terminal` in Neovim
   enable_italics = true, -- Italics for different hightlight groups (eg. Statement, Condition, Comment, Include, etc.)
@@ -178,3 +204,32 @@ vim.cmd [[
 ]]
 
 
+-- Load Telescope
+require('telescope').setup{
+  defaults = {
+    prompt_prefix = "> ",  -- Prefix shown in prompt
+    selection_caret = "> ",  -- Character for selected item
+    layout_config = {
+      horizontal = {
+        mirror = false,  -- Set to true to flip the layout horizontally
+      },
+      vertical = {
+        mirror = false,  -- Set to true to flip the layout vertically
+      },
+    },
+  },
+  pickers = {
+    find_files = {
+      theme = "dropdown",  -- Change appearance of file finder
+    },
+    live_grep = {
+      theme = "dropdown",
+    },
+  },
+}
+
+-- Key mappings for Telescope commands
+vim.api.nvim_set_keymap('n', '<leader>ff', ':Telescope find_files<CR>', { noremap = true, silent = true })  -- Find files
+vim.api.nvim_set_keymap('n', '<leader>fg', ':Telescope live_grep<CR>', { noremap = true, silent = true })  -- Live grep
+vim.api.nvim_set_keymap('n', '<leader>fb', ':Telescope buffers<CR>', { noremap = true, silent = true })  -- List buffers
+vim.api.nvim_set_keymap('n', '<leader>fh', ':Telescope help_tags<CR>', { noremap = true, silent = true })  -- Help tags
